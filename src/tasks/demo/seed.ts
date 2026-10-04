@@ -17,6 +17,7 @@ import {
   DEMO_GROUPS,
   DEMO_SLUG,
 } from './la-parrilla-de-tono';
+import { DEMO_PHOTOS } from './photos';
 
 export interface SeededRestaurant {
   tenantId: Types.ObjectId;
@@ -75,6 +76,7 @@ export async function seedDemoRestaurant(
     name,
     slug,
     logoUrl: null,
+    coverUrl: DEMO_PHOTOS.cover?.url ?? null,
     defaultBranchId: null,
   });
   const branchId = await branches.create(tenantId, {
@@ -121,7 +123,7 @@ export async function seedDemoRestaurant(
         name: item.name,
         description: item.description ?? null,
         price: item.price,
-        imageUrl: null,
+        imageUrl: DEMO_PHOTOS[item.name]?.url ?? null,
         available: item.available ?? true,
         position: itemPosition,
         modifierGroupIds: (item.groups ?? []).flatMap((key) => {

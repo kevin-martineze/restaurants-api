@@ -44,6 +44,10 @@ export class Brand {
   @Prop({ type: String, default: null })
   logoUrl!: string | null;
 
+  /** Foto de portada de la carta. */
+  @Prop({ type: String, default: null })
+  coverUrl!: string | null;
+
   @Prop({ type: BrandTheme, required: true, default: () => ({}) })
   theme!: BrandTheme;
 

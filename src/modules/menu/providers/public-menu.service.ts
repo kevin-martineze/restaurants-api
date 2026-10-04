@@ -19,6 +19,7 @@ export interface PublicMenu {
     name: string;
     tagline: string | null;
     logoUrl: string | null;
+    coverUrl: string | null;
     theme: { primary: string; primaryForeground: string };
   };
   branch: {
@@ -71,6 +72,7 @@ export class PublicMenuService {
         name: brand.name,
         tagline: brand.tagline,
         logoUrl: brand.logoUrl,
+        coverUrl: brand.coverUrl,
         theme: {
           primary: brand.theme.primary,
           primaryForeground: brand.theme.primaryForeground,
