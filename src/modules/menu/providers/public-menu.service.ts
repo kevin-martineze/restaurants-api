@@ -5,6 +5,7 @@ import { BrandsRepository } from '@modules/organization/providers/brands.reposit
 import { TenantsRepository } from '@modules/organization/providers/tenants.repository';
 import { Branch, FulfillmentType } from '@modules/organization/schemas/branch.schema';
 import { Brand } from '@modules/organization/schemas/brand.schema';
+import { KitchenStatus, kitchenStatus } from '@modules/organization/domain/kitchen';
 import { Lean } from '@shared/tenancy/tenant-repository';
 
 import { Quote, QuoteRequestLine, quoteLines } from '../domain/quote';
@@ -30,6 +31,7 @@ export interface PublicMenu {
     fulfillment: FulfillmentType[];
   };
   status: OpenStatus;
+  kitchen: KitchenStatus;
   categories: SnapshotCategory[];
 }
 
@@ -65,6 +67,7 @@ export class PublicMenuService {
 
   async getMenu(slug: string, now = new Date()): Promise<PublicMenu> {
     const { brand, branch, categories } = await this.resolve(slug);
+    const kitchen = kitchenStatus(branch.kitchenLoad, branch.etaMinutes);
 
     return {
       restaurant: {
@@ -82,10 +85,12 @@ export class PublicMenuService {
         id: branch._id.toString(),
         name: branch.name,
         address: branch.address,
-        etaMinutes: branch.etaMinutes,
+        // Ya corregido por la carga de la cocina: es el que se promete.
+        etaMinutes: kitchen.etaMinutes,
         fulfillment: branch.fulfillment,
       },
       status: branchStatus(branch, now),
+      kitchen,
       categories,
     };
   }

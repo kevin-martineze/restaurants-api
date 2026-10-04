@@ -206,6 +206,36 @@ describe('Carta pública', () => {
     });
   });
 
+  it('la carga de la cocina corrige el tiempo estimado que se promete', async () => {
+    const branches = app.get(BranchesRepository);
+
+    await branches.updateOne(
+      parrilla.tenantId,
+      { _id: parrilla.branchId },
+      { kitchenLoad: 'busy' },
+    );
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/v1/public/la-parrilla-de-tono/menu',
+    });
+    const body = z
+      .object({
+        branch: z.object({ etaMinutes: z.number() }),
+        kitchen: z.object({ load: z.string(), label: z.string(), etaMinutes: z.number() }),
+      })
+      .parse(response.json());
+
+    expect(body.kitchen).toEqual({ load: 'busy', label: 'Mucha demanda', etaMinutes: 50 });
+    expect(body.branch.etaMinutes).toBe(50);
+
+    await branches.updateOne(
+      parrilla.tenantId,
+      { _id: parrilla.branchId },
+      { kitchenLoad: 'calm' },
+    );
+  });
+
   it('un restaurante suspendido no muestra su carta', async () => {
     const tenants = app.get<Model<Tenant>>(getModelToken(Tenant.name));
 

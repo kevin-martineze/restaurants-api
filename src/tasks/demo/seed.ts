@@ -58,15 +58,20 @@ export async function seedDemoRestaurant(
   if (existing) {
     const tenantId = existing.tenantId;
 
-    await Promise.all([
-      snapshots.deleteMany(tenantId),
-      branchItems.deleteMany(tenantId),
-      items.deleteMany(tenantId),
-      groups.deleteMany(tenantId),
-      categories.deleteMany(tenantId),
-      branches.deleteMany(tenantId),
-      brands.deleteMany(tenantId),
-    ]);
+    // Uno por uno y no en paralelo: `deleteMany` no se reintenta solo, y abrir
+    // varias conexiones a la vez contra Mongo en Podman sin root a veces
+    // termina en ECONNRESET a mitad de la semilla.
+    for (const repository of [
+      snapshots,
+      branchItems,
+      items,
+      groups,
+      categories,
+      branches,
+      brands,
+    ]) {
+      await repository.deleteMany(tenantId);
+    }
     await tenants.deleteById(tenantId);
   }
 
@@ -85,6 +90,7 @@ export async function seedDemoRestaurant(
     timezone: 'America/Bogota',
     status: 'open',
     fulfillment: ['delivery', 'pickup'],
+    kitchenLoad: 'calm',
   });
 
   await brands.updateOne(tenantId, { _id: brandId }, { defaultBranchId: branchId });

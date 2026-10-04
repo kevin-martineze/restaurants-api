@@ -13,6 +13,14 @@ export const BRANCH_STATUSES = ['open', 'paused', 'closed'] as const;
  */
 export type BranchStatus = (typeof BRANCH_STATUSES)[number];
 
+export const KITCHEN_LOADS = ['calm', 'busy', 'saturated'] as const;
+
+/**
+ * Qué tan cargada está la cocina. Hoy lo fija el restaurante; con pedidos
+ * reales se calculará solo según la cola (modo hora pico).
+ */
+export type KitchenLoad = (typeof KITCHEN_LOADS)[number];
+
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 @Schema({ _id: false, strict: true })
@@ -60,6 +68,9 @@ export class Branch {
 
   @Prop({ type: [String], enum: FULFILLMENT_TYPES, default: ['delivery', 'pickup'] })
   fulfillment!: FulfillmentType[];
+
+  @Prop({ type: String, required: true, enum: KITCHEN_LOADS, default: 'calm' })
+  kitchenLoad!: KitchenLoad;
 }
 
 export type BranchDocument = HydratedDocument<Branch>;
