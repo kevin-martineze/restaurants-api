@@ -9,6 +9,14 @@ import { z } from 'zod';
  * demuestre lo contrario, igual que lo que llega por la red.
  */
 
+/**
+ * Etiquetas que el restaurante le pone a un producto para destacarlo en la
+ * carta. `popular` además lo sube al carrusel de "Lo más pedido".
+ */
+export const ITEM_TAGS = ['popular', 'new', 'spicy', 'vegetarian'] as const;
+
+export type ItemTag = (typeof ITEM_TAGS)[number];
+
 export const snapshotModifierSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -31,6 +39,7 @@ export const snapshotItemSchema = z.object({
   price: z.number().int().min(0),
   imageUrl: z.string().nullable(),
   available: z.boolean(),
+  tags: z.array(z.enum(ITEM_TAGS)).default([]),
   groups: z.array(snapshotGroupSchema),
 });
 

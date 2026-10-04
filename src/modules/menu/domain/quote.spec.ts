@@ -49,6 +49,7 @@ const menu: SnapshotCategory[] = [
         price: 18000,
         imageUrl: null,
         available: true,
+        tags: [],
         groups: [termino, adiciones],
       },
       {
@@ -58,6 +59,7 @@ const menu: SnapshotCategory[] = [
         price: 26000,
         imageUrl: null,
         available: false,
+        tags: [],
         groups: [termino],
       },
     ],
@@ -73,6 +75,7 @@ const menu: SnapshotCategory[] = [
         price: 38000,
         imageUrl: null,
         available: true,
+        tags: [],
         groups: [acompanantes],
       },
     ],

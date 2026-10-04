@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
+import { ITEM_TAGS, ItemTag } from '../domain/snapshot';
+
 /** Pesos enteros: COP no usa decimales. */
 export const integerPesos = {
   validator: Number.isInteger,
@@ -41,6 +43,10 @@ export class Item {
   /** Referencias: un grupo ("Salsas") se reutiliza en muchos productos. El orden importa. */
   @Prop({ type: [Types.ObjectId], default: [] })
   modifierGroupIds!: Types.ObjectId[];
+
+  /** "Más pedido", "Nuevo"… Ver `ITEM_TAGS`. */
+  @Prop({ type: [String], enum: ITEM_TAGS, default: [] })
+  tags!: ItemTag[];
 }
 
 export type ItemDocument = HydratedDocument<Item>;

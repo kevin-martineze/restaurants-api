@@ -29,6 +29,7 @@ function source(overrides: Partial<SnapshotSource> = {}): SnapshotSource {
         available: true,
         position: 2,
         modifierGroupIds: ['salsas', 'borrado'],
+        tags: ['popular'],
       },
       {
         id: 'sencilla',
@@ -40,6 +41,7 @@ function source(overrides: Partial<SnapshotSource> = {}): SnapshotSource {
         available: true,
         position: 1,
         modifierGroupIds: [],
+        tags: [],
       },
       {
         id: 'agua',
@@ -51,6 +53,7 @@ function source(overrides: Partial<SnapshotSource> = {}): SnapshotSource {
         available: false,
         position: 1,
         modifierGroupIds: [],
+        tags: [],
       },
       {
         id: 'mango',
@@ -62,6 +65,7 @@ function source(overrides: Partial<SnapshotSource> = {}): SnapshotSource {
         available: true,
         position: 1,
         modifierGroupIds: [],
+        tags: [],
       },
     ],
     groups: [salsas],
@@ -82,6 +86,7 @@ describe('buildSnapshot', () => {
     const doble = buildSnapshot(source())[0]?.items[1];
 
     expect(doble?.groups.map((group) => group.id)).toEqual(['salsas']);
+    expect(doble?.tags).toEqual(['popular']);
   });
 
   it('aplica el precio y el agotado de la sucursal', () => {

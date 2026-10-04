@@ -53,6 +53,7 @@ export class MenuPublisher {
         available: item.available,
         position: item.position,
         modifierGroupIds: item.modifierGroupIds.map((id) => id.toString()),
+        tags: item.tags,
       })),
       groups: groups.map((group) => ({
         id: group._id.toString(),

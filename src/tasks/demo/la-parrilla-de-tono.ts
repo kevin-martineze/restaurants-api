@@ -1,3 +1,5 @@
+import { ItemTag } from '@modules/menu/domain/snapshot';
+
 /**
  * Restaurante de demostración: asadero de comida rápida en Barranquilla.
  *
@@ -20,6 +22,7 @@ export interface DemoItem {
   price: number;
   available?: boolean;
   groups?: string[];
+  tags?: ItemTag[];
 }
 
 export const DEMO_SLUG = 'la-parrilla-de-tono';
@@ -136,6 +139,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
       },
       {
         name: 'Costeña',
+        tags: ['popular'],
         description: 'Carne de 150 g, butifarra, queso costeño asado, suero y maduro.',
         price: 24000,
         groups: burgerGroups,
@@ -160,6 +164,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
       },
       {
         name: 'Perro suizo',
+        tags: ['new'],
         description: 'Salchicha suiza, queso gratinado, tocineta y cebolla caramelizada.',
         price: 16000,
         groups: ['adicionesPerro', 'salsas'],
@@ -171,6 +176,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
     items: [
       {
         name: 'Punta de anca 300 g',
+        tags: ['popular'],
         description: 'Al carbón, con suero costeño y dos acompañantes.',
         price: 38000,
         groups: ['termino', ...asadoGroups],
@@ -183,6 +189,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
       },
       {
         name: 'Costillas BBQ',
+        tags: ['spicy'],
         description: 'Costillas de cerdo en salsa BBQ de la casa con dos acompañantes.',
         price: 36000,
         groups: asadoGroups,
@@ -194,6 +201,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
     items: [
       {
         name: 'Picada de la casa',
+        tags: ['popular'],
         description: 'Res, cerdo, chorizo, butifarra, patacón, yuca y suero.',
         price: 28000,
         groups: ['tamanoPicada', 'salsas'],
@@ -215,8 +223,8 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
     name: 'Acompañantes',
     items: [
       { name: 'Patacón', price: 6000 },
-      { name: 'Yuca frita', price: 6000 },
-      { name: 'Arepa de huevo', description: 'Con carne molida.', price: 5000 },
+      { name: 'Yuca frita', price: 6000, tags: ['vegetarian'] },
+      { name: 'Arepa de huevo', description: 'Con carne molida.', price: 5000, tags: ['popular'] },
       { name: 'Butifarra (3 unidades)', description: 'Con limón y bollo.', price: 9000 },
     ],
   },
@@ -226,6 +234,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
       {
         name: 'Jugo de corozo',
         description: 'Natural, 16 oz.',
+        tags: ['new'],
         price: 6000,
         groups: ['baseJugo'],
       },

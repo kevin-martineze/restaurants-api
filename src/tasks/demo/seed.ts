@@ -126,6 +126,7 @@ export async function seedDemoRestaurant(
         imageUrl: DEMO_PHOTOS[item.name]?.url ?? null,
         available: item.available ?? true,
         position: itemPosition,
+        tags: item.tags ?? [],
         modifierGroupIds: (item.groups ?? []).flatMap((key) => {
           const id = groupIds.get(key);
 

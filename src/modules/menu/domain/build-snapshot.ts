@@ -1,4 +1,4 @@
-import type { SnapshotCategory, SnapshotGroup } from './snapshot';
+import type { ItemTag, SnapshotCategory, SnapshotGroup } from './snapshot';
 
 /**
  * Entradas del armado, ya leídas de la base. Los ids van como texto: el menú
@@ -21,6 +21,7 @@ export interface SourceItem {
   available: boolean;
   position: number;
   modifierGroupIds: string[];
+  tags: ItemTag[];
 }
 
 export interface SourceOverride {
@@ -68,6 +69,7 @@ export function buildSnapshot(source: SnapshotSource): SnapshotCategory[] {
             price: override?.price ?? item.price,
             imageUrl: item.imageUrl,
             available: item.available && override?.available !== false,
+            tags: item.tags,
             groups: item.modifierGroupIds.flatMap((groupId) => {
               const group = groups.get(groupId);
 
