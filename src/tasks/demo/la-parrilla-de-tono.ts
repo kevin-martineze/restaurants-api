@@ -47,8 +47,9 @@ export const DEMO_BRANCH = {
     { maxKm: 6, fee: 5000, minOrder: 30000 },
     { maxKm: 9, fee: 7000, minOrder: 40000 },
   ],
-  // Todos los días de 12:00 m. a 11:00 p. m.
-  schedule: [0, 1, 2, 3, 4, 5, 6].map((day) => ({ day, opens: '12:00', closes: '23:00' })),
+  // Abierto las 24 horas para poder probar la demo a cualquier hora. Un
+  // restaurante real tiene su horario (p. ej. 12:00 a 23:00).
+  schedule: [0, 1, 2, 3, 4, 5, 6].map((day) => ({ day, opens: '00:00', closes: '00:00' })),
 };
 
 export const DEMO_GROUPS: Record<string, DemoGroup> = {

@@ -105,7 +105,14 @@ export function openStatus(schedule: readonly ScheduleSlot[], now: Date): OpenSt
   const { day, minute } = localNow(now);
   const open = currentSlot(schedule, day, minute);
 
-  if (open) return { open: true, label: `Abierto · cierra a las ${formatTime(open.closes)}` };
+  if (open) {
+    // Abre y cierra a la misma hora: turno de 24 horas, no "cierra a las 12:00 a. m.".
+    if (toMinutes(open.opens) === toMinutes(open.closes)) {
+      return { open: true, label: 'Abierto las 24 horas' };
+    }
+
+    return { open: true, label: `Abierto · cierra a las ${formatTime(open.closes)}` };
+  }
 
   for (let offset = 0; offset < 7; offset += 1) {
     const candidateDay = (day + offset) % 7;

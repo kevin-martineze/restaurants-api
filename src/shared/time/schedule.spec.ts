@@ -60,6 +60,19 @@ describe('openStatus', () => {
     expect(openStatus(night, bogota('2026-10-10T02:30:00')).open).toBe(false);
   });
 
+  it('un turno de 24 horas no dice a qué hora cierra', () => {
+    const allDay: ScheduleSlot[] = [0, 1, 2, 3, 4, 5, 6].map((day) => ({
+      day,
+      opens: '00:00',
+      closes: '00:00',
+    }));
+
+    expect(openStatus(allDay, bogota('2026-10-05T03:00:00'))).toEqual({
+      open: true,
+      label: 'Abierto las 24 horas',
+    });
+  });
+
   it('sin horario queda cerrado', () => {
     expect(openStatus([], bogota('2026-10-05T13:00:00'))).toEqual({
       open: false,
