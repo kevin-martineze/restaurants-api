@@ -1,4 +1,4 @@
-import type { FilterQuery, Model, PipelineStage, UpdateQuery } from 'mongoose';
+import type { ClientSession, FilterQuery, Model, PipelineStage, UpdateQuery } from 'mongoose';
 
 import { Types } from 'mongoose';
 
@@ -36,13 +36,20 @@ export abstract class TenantRepository<T extends TenantOwned> {
     return this.model.findOne(this.scoped(tenantId, filter)).lean<Lean<T>>().exec();
   }
 
-  /** Crea el documento dentro del tenant y devuelve su id. */
-  async create(tenantId: Types.ObjectId, data: Omit<T, 'tenantId'>): Promise<Types.ObjectId> {
+  /**
+   * Crea el documento dentro del tenant y devuelve su id. Con `session`, dentro
+   * de una transacción.
+   */
+  async create(
+    tenantId: Types.ObjectId,
+    data: Omit<T, 'tenantId'>,
+    session?: ClientSession,
+  ): Promise<Types.ObjectId> {
     // El id se genera aquí: con un `T` genérico, Mongoose no logra tipar el
     // `_id` del documento creado.
     const _id = new Types.ObjectId();
 
-    await this.model.create({ ...data, tenantId, _id });
+    await this.model.create([{ ...data, tenantId, _id }], { session });
 
     return _id;
   }
@@ -52,8 +59,11 @@ export abstract class TenantRepository<T extends TenantOwned> {
     tenantId: Types.ObjectId,
     filter: FilterQuery<T>,
     update: UpdateQuery<T>,
+    session?: ClientSession,
   ): Promise<number> {
-    const result = await this.model.updateOne(this.scoped(tenantId, filter), update).exec();
+    const result = await this.model
+      .updateOne(this.scoped(tenantId, filter), update, { session })
+      .exec();
 
     return result.matchedCount;
   }

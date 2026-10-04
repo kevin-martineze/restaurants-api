@@ -10,11 +10,20 @@ export interface QuoteRequestLine {
   qty: number;
 }
 
+export interface QuotedModifier {
+  id: string;
+  groupName: string;
+  name: string;
+  priceDelta: number;
+}
+
 export interface QuotedLine {
   /** Posición de la línea en la petición: el cliente la usa para ubicarla. */
   index: number;
   itemId: string;
   modifierIds: string[];
+  /** El detalle que el pedido guarda congelado: nombre y precio de cada opción. */
+  modifiers: QuotedModifier[];
   name: string;
   modifiersLabel: string;
   note: string;
@@ -71,6 +80,16 @@ export function quoteLines(
       index,
       itemId: item.id,
       modifierIds: line.modifierIds,
+      modifiers: item.groups.flatMap((group) =>
+        group.modifiers
+          .filter((modifier) => line.modifierIds.includes(modifier.id))
+          .map((modifier) => ({
+            id: modifier.id,
+            groupName: group.name,
+            name: modifier.name,
+            priceDelta: modifier.priceDelta,
+          })),
+      ),
       name: item.name,
       modifiersLabel: selectionLabel(item, line.modifierIds),
       note: line.note,

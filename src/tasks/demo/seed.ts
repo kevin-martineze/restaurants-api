@@ -91,6 +91,7 @@ export async function seedDemoRestaurant(
     status: 'open',
     fulfillment: ['delivery', 'pickup'],
     kitchenLoad: 'calm',
+    paymentMethods: ['cash', 'card_on_delivery'],
   });
 
   await brands.updateOne(tenantId, { _id: brandId }, { defaultBranchId: branchId });

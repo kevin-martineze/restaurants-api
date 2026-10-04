@@ -40,6 +40,13 @@ export const DEMO_BRANCH = {
   name: 'Sede El Prado',
   address: 'El Prado, Barranquilla',
   etaMinutes: 35,
+  // El Prado, Barranquilla (aproximado). GeoJSON: [longitud, latitud].
+  location: { type: 'Point' as const, coordinates: [-74.8066, 10.9965] as [number, number] },
+  deliveryRings: [
+    { maxKm: 3, fee: 3000, minOrder: 20000 },
+    { maxKm: 6, fee: 5000, minOrder: 30000 },
+    { maxKm: 9, fee: 7000, minOrder: 40000 },
+  ],
   // Todos los días de 12:00 m. a 11:00 p. m.
   schedule: [0, 1, 2, 3, 4, 5, 6].map((day) => ({ day, opens: '12:00', closes: '23:00' })),
 };

@@ -44,6 +44,7 @@ import { ModifierGroup, ModifierGroupSchema } from './schemas/modifier-group.sch
     BranchItemsRepository,
     MenuSnapshotsRepository,
     MenuPublisher,
+    PublicMenuService,
   ],
 })
 export class MenuModule {}

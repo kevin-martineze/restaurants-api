@@ -98,6 +98,10 @@ describe('quoteLines', () => {
       [1, 40000, 40000],
     ]);
     expect(quote.lines[0]?.modifiersLabel).toBe('Medio · Tocineta');
+    expect(quote.lines[0]?.modifiers).toEqual([
+      { id: 'medio', groupName: 'Término de la carne', name: 'Medio', priceDelta: 0 },
+      { id: 'tocineta', groupName: 'Adiciones', name: 'Tocineta', priceDelta: 3000 },
+    ]);
     expect(quote.subtotal).toBe(82000);
   });
 

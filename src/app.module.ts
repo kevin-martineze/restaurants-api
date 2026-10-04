@@ -6,7 +6,9 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { Env, validateEnv } from '@shared/config/env';
 import { AllExceptionsFilter } from '@shared/filters/all-exceptions.filter';
 import { HealthModule } from '@modules/health/health.module';
+import { CustomersModule } from '@modules/customers/customers.module';
 import { MenuModule } from '@modules/menu/menu.module';
+import { OrdersModule } from '@modules/orders/orders.module';
 import { OrganizationModule } from '@modules/organization/organization.module';
 
 @Module({
@@ -41,6 +43,8 @@ import { OrganizationModule } from '@modules/organization/organization.module';
     HealthModule,
     OrganizationModule,
     MenuModule,
+    CustomersModule,
+    OrdersModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -35,7 +35,7 @@ export interface PublicMenu {
   categories: SnapshotCategory[];
 }
 
-interface ResolvedMenu {
+export interface ResolvedMenu {
   brand: Lean<Brand>;
   branch: Lean<Branch>;
   categories: SnapshotCategory[];
@@ -101,8 +101,11 @@ export class PublicMenuService {
     return quoteLines(categories, lines);
   }
 
-  /** Del slug público a la marca, su sucursal y su menú publicado. */
-  private async resolve(slug: string): Promise<ResolvedMenu> {
+  /**
+   * Del slug público a la marca, su sucursal y su menú publicado. El checkout
+   * lo reutiliza: se cotiza contra el mismo menú que ve el cliente.
+   */
+  async resolve(slug: string): Promise<ResolvedMenu> {
     const brand = await this.brands.findBySlug(slug);
 
     if (!brand) throw notFound('Este restaurante no existe.');

@@ -37,6 +37,37 @@ export class ScheduleSlotDoc {
   closes!: string;
 }
 
+export const PAYMENT_METHODS = ['cash', 'card_on_delivery'] as const;
+
+/**
+ * Cómo se paga. Por ahora todo es al recibir: efectivo o datáfono que lleva
+ * el domiciliario (o en la caja, si se recoge). Los pagos en línea (Wompi)
+ * se agregan aquí cuando lleguen.
+ */
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** Punto GeoJSON: `[longitud, latitud]`, en ese orden. */
+@Schema({ _id: false, strict: true })
+export class GeoPointDoc {
+  @Prop({ type: String, required: true, enum: ['Point'], default: 'Point' })
+  type!: 'Point';
+
+  @Prop({ type: [Number], required: true })
+  coordinates!: [number, number];
+}
+
+@Schema({ _id: false, strict: true })
+export class DeliveryRingDoc {
+  @Prop({ required: true, min: 0.1, max: 50 })
+  maxKm!: number;
+
+  @Prop({ required: true, min: 0, validate: Number.isInteger })
+  fee!: number;
+
+  @Prop({ required: true, min: 0, validate: Number.isInteger })
+  minOrder!: number;
+}
+
 @Schema({ collection: 'branches', timestamps: true, strict: true })
 export class Branch {
   @Prop({ type: Types.ObjectId, required: true })
@@ -71,6 +102,16 @@ export class Branch {
 
   @Prop({ type: String, required: true, enum: KITCHEN_LOADS, default: 'calm' })
   kitchenLoad!: KitchenLoad;
+
+  /** Desde dónde salen los domicilios. Sin ubicación, la sede no hace domicilios. */
+  @Prop({ type: GeoPointDoc, default: null })
+  location!: GeoPointDoc | null;
+
+  @Prop({ type: [DeliveryRingDoc], default: [] })
+  deliveryRings!: DeliveryRingDoc[];
+
+  @Prop({ type: [String], enum: PAYMENT_METHODS, default: ['cash', 'card_on_delivery'] })
+  paymentMethods!: PaymentMethod[];
 }
 
 export type BranchDocument = HydratedDocument<Branch>;
@@ -78,3 +119,4 @@ export type BranchDocument = HydratedDocument<Branch>;
 export const BranchSchema = SchemaFactory.createForClass(Branch);
 
 BranchSchema.index({ tenantId: 1, brandIds: 1 });
+BranchSchema.index({ location: '2dsphere' }, { sparse: true });
