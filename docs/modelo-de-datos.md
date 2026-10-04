@@ -14,11 +14,18 @@ Dinero: pesos enteros. Fechas: `Date` en UTC; la zona horaria del restaurante
 ```
 tenants      { _id, name, plan, status, createdAt }
 brands       { _id, tenantId, name, slug (único), theme { templateId, colors, logoUrl, font, bannerUrl } }
-branches     { _id, tenantId, brandIds[], name, slug, address, location: GeoJSON Point,
-               timezone, schedule [{ day, opens, closes }], status: open|paused|closed,
-               prepTimeMinutes, paymentMethods[] }
-deliveryZones{ _id, tenantId, branchId, name, area: GeoJSON Polygon (2dsphere),
-               fee, minOrder, etaMinutes, active }
+branches     { _id, tenantId, brandIds[], name, address, timezone,
+               schedule [{ day, opens, closes }], status: open|paused|closed,
+               etaMinutes, fulfillment[], kitchenLoad: calm|busy|saturated,
+               location: GeoJSON Point (2dsphere), deliveryRings [{ maxKm, fee, minOrder }],
+               paymentMethods: [cash, card_on_delivery] }
+```
+
+La cobertura es por **anillos** alrededor de la sede (distancia en línea
+recta): más simple de configurar que polígonos. Los polígonos por barrio
+pueden llegar después sin cambiar a quien pregunta (`coverageFor`).
+
+```
 users        { _id, email, phone, passwordHash, name }
 memberships  { _id, tenantId, userId, role: owner|manager|cashier|kitchen|rider, branchIds[] }
 ```
@@ -56,10 +63,11 @@ o al marcar un agotado. La cotización valida contra este snapshot y contra
 
 ```
 customers { _id, tenantId, phone (E.164), name,
-            consent { utility: bool, marketing: bool, at, version },
+            consent { serviceAt, marketing: bool, marketingAt, version },
             addresses [{ _id, label, text, neighborhood, references, location: Point,
                          facadePhotoUrl?, verified }],      ← embebidas: acotadas
-            stats { orders, lastOrderAt, noShows } }
+            stats { orders, lastOrderAt } }
+orderCounters { tenantId, branchId, seq }   ← número consecutivo por sede, dentro de la transacción del pedido
 ```
 
 Índice único: `{ tenantId, phone }`. Un mismo teléfono en dos restaurantes son

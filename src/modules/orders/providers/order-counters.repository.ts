@@ -28,4 +28,9 @@ export class OrderCountersRepository {
 
     return counter.seq;
   }
+
+  /** Solo para reiniciar datos de demostración: borra los contadores del tenant. */
+  async deleteForTenant(tenantId: Types.ObjectId): Promise<void> {
+    await this.model.deleteMany({ tenantId }).exec();
+  }
 }

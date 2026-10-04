@@ -1,11 +1,14 @@
 import { INestApplicationContext } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { CustomersRepository } from '@modules/customers/providers/customers.repository';
 import { BranchItemsRepository } from '@modules/menu/providers/branch-items.repository';
 import { CategoriesRepository } from '@modules/menu/providers/categories.repository';
 import { ItemsRepository } from '@modules/menu/providers/items.repository';
 import { MenuPublisher } from '@modules/menu/providers/menu-publisher.service';
 import { MenuSnapshotsRepository } from '@modules/menu/providers/menu-snapshots.repository';
 import { ModifierGroupsRepository } from '@modules/menu/providers/modifier-groups.repository';
+import { OrderCountersRepository } from '@modules/orders/providers/order-counters.repository';
+import { OrdersRepository } from '@modules/orders/providers/orders.repository';
 import { BranchesRepository } from '@modules/organization/providers/branches.repository';
 import { BrandsRepository } from '@modules/organization/providers/brands.repository';
 import { TenantsRepository } from '@modules/organization/providers/tenants.repository';
@@ -50,6 +53,9 @@ export async function seedDemoRestaurant(
   const branchItems = app.get(BranchItemsRepository);
   const snapshots = app.get(MenuSnapshotsRepository);
   const publisher = app.get(MenuPublisher);
+  const orders = app.get(OrdersRepository);
+  const counters = app.get(OrderCountersRepository);
+  const customers = app.get(CustomersRepository);
 
   const slug = overrides.slug ?? DEMO_SLUG;
   const name = overrides.name ?? DEMO_BRAND.name;
@@ -62,6 +68,8 @@ export async function seedDemoRestaurant(
     // varias conexiones a la vez contra Mongo en Podman sin root a veces
     // termina en ECONNRESET a mitad de la semilla.
     for (const repository of [
+      orders,
+      customers,
       snapshots,
       branchItems,
       items,
@@ -72,6 +80,8 @@ export async function seedDemoRestaurant(
     ]) {
       await repository.deleteMany(tenantId);
     }
+
+    await counters.deleteForTenant(tenantId);
     await tenants.deleteById(tenantId);
   }
 

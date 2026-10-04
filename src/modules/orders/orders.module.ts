@@ -21,6 +21,6 @@ import { Order, OrderSchema } from './schemas/order.schema';
   ],
   controllers: [PublicOrdersController],
   providers: [OrdersRepository, OrderCountersRepository, CheckoutService],
-  exports: [OrdersRepository],
+  exports: [OrdersRepository, OrderCountersRepository],
 })
 export class OrdersModule {}
