@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { BranchesRepository } from '@modules/organization/providers/branches.repository';
 
 import { buildSnapshot } from '../domain/build-snapshot';
 
@@ -22,7 +23,17 @@ export class MenuPublisher {
     private readonly groups: ModifierGroupsRepository,
     private readonly branchItems: BranchItemsRepository,
     private readonly snapshots: MenuSnapshotsRepository,
+    private readonly branches: BranchesRepository,
   ) {}
+
+  /** Republica la carta en todas las sedes de la marca: se llama después de editarla. */
+  async publishBrand(tenantId: Types.ObjectId, brandId: Types.ObjectId): Promise<void> {
+    const branches = await this.branches.find(tenantId, { brandIds: brandId });
+
+    for (const branch of branches) {
+      await this.publish(tenantId, brandId, branch._id);
+    }
+  }
 
   async publish(
     tenantId: Types.ObjectId,

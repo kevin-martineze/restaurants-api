@@ -2,10 +2,12 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { OrganizationModule } from '@modules/organization/organization.module';
 
+import { PanelMenuController } from './controllers/panel-menu.controller';
 import { PublicMenuController } from './controllers/public-menu.controller';
 import { BranchItemsRepository } from './providers/branch-items.repository';
 import { CategoriesRepository } from './providers/categories.repository';
 import { ItemsRepository } from './providers/items.repository';
+import { MenuAdminService } from './providers/menu-admin.service';
 import { MenuPublisher } from './providers/menu-publisher.service';
 import { MenuSnapshotsRepository } from './providers/menu-snapshots.repository';
 import { ModifierGroupsRepository } from './providers/modifier-groups.repository';
@@ -27,7 +29,7 @@ import { ModifierGroup, ModifierGroupSchema } from './schemas/modifier-group.sch
       { name: MenuSnapshot.name, schema: MenuSnapshotSchema },
     ]),
   ],
-  controllers: [PublicMenuController],
+  controllers: [PublicMenuController, PanelMenuController],
   providers: [
     CategoriesRepository,
     ItemsRepository,
@@ -35,6 +37,7 @@ import { ModifierGroup, ModifierGroupSchema } from './schemas/modifier-group.sch
     BranchItemsRepository,
     MenuSnapshotsRepository,
     MenuPublisher,
+    MenuAdminService,
     PublicMenuService,
   ],
   exports: [
