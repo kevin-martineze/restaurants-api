@@ -29,6 +29,8 @@ export interface PublicMenu {
     address: string;
     etaMinutes: number;
     fulfillment: FulfillmentType[];
+    /** Para centrar el mapa del checkout. `null`: la sede no hace domicilios. */
+    location: { lat: number; lng: number } | null;
   };
   status: OpenStatus;
   kitchen: KitchenStatus;
@@ -88,6 +90,9 @@ export class PublicMenuService {
         // Ya corregido por la carga de la cocina: es el que se promete.
         etaMinutes: kitchen.etaMinutes,
         fulfillment: branch.fulfillment,
+        location: branch.location
+          ? { lat: branch.location.coordinates[1], lng: branch.location.coordinates[0] }
+          : null,
       },
       status: branchStatus(branch, now),
       kitchen,
