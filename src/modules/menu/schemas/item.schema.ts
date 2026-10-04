@@ -47,6 +47,10 @@ export class Item {
   /** "Más pedido", "Nuevo"… Ver `ITEM_TAGS`. */
   @Prop({ type: [String], enum: ITEM_TAGS, default: [] })
   tags!: ItemTag[];
+
+  /** "Combina con…" elegido a mano. Vacío: se sugiere solo (ver `buildSnapshot`). */
+  @Prop({ type: [Types.ObjectId], default: [] })
+  pairsWith!: Types.ObjectId[];
 }
 
 export type ItemDocument = HydratedDocument<Item>;

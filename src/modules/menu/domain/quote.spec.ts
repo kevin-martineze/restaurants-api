@@ -50,6 +50,7 @@ const menu: SnapshotCategory[] = [
         imageUrl: null,
         available: true,
         tags: [],
+        suggestedItemIds: [],
         groups: [termino, adiciones],
       },
       {
@@ -60,6 +61,7 @@ const menu: SnapshotCategory[] = [
         imageUrl: null,
         available: false,
         tags: [],
+        suggestedItemIds: [],
         groups: [termino],
       },
     ],
@@ -76,6 +78,7 @@ const menu: SnapshotCategory[] = [
         imageUrl: null,
         available: true,
         tags: [],
+        suggestedItemIds: [],
         groups: [acompanantes],
       },
     ],

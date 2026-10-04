@@ -1,4 +1,4 @@
-import { ItemTag } from '@modules/menu/domain/snapshot';
+import { CategoryRole, ItemTag } from '@modules/menu/domain/snapshot';
 
 /**
  * Restaurante de demostración: asadero de comida rápida en Barranquilla.
@@ -23,6 +23,8 @@ export interface DemoItem {
   available?: boolean;
   groups?: string[];
   tags?: ItemTag[];
+  /** Nombres de otros productos para "Combina con…", elegidos a mano. */
+  pairsWith?: string[];
 }
 
 export const DEMO_SLUG = 'la-parrilla-de-tono';
@@ -127,7 +129,7 @@ export const DEMO_GROUPS: Record<string, DemoGroup> = {
 const burgerGroups = ['termino', 'adicionesHamburguesa', 'salsas'];
 const asadoGroups = ['acompananteAsado'];
 
-export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
+export const DEMO_CATEGORIES: { name: string; role?: CategoryRole; items: DemoItem[] }[] = [
   {
     name: 'Hamburguesas',
     items: [
@@ -202,6 +204,8 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
       {
         name: 'Picada de la casa',
         tags: ['popular'],
+        // La picada se acompaña con cerveza y arepa: elegido a mano.
+        pairsWith: ['Cerveza nacional', 'Arepa de huevo'],
         description: 'Res, cerdo, chorizo, butifarra, patacón, yuca y suero.',
         price: 28000,
         groups: ['tamanoPicada', 'salsas'],
@@ -214,6 +218,8 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
       {
         name: 'Combo hamburguesa sencilla',
         description: 'Hamburguesa sencilla, papa a la francesa y bebida.',
+        // Ya trae bebida: sugerirle otra sería ruido.
+        pairsWith: ['Arepa de huevo', 'Patacón'],
         price: 25000,
         groups: ['termino', 'bebidaCombo', 'salsas'],
       },
@@ -221,6 +227,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
   },
   {
     name: 'Acompañantes',
+    role: 'side',
     items: [
       { name: 'Patacón', price: 6000 },
       { name: 'Yuca frita', price: 6000, tags: ['vegetarian'] },
@@ -230,6 +237,7 @@ export const DEMO_CATEGORIES: { name: string; items: DemoItem[] }[] = [
   },
   {
     name: 'Bebidas',
+    role: 'drink',
     items: [
       {
         name: 'Jugo de corozo',

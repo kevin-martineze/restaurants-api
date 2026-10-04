@@ -108,16 +108,19 @@ export async function seedDemoRestaurant(
     groupIds.set(key, id);
   }
 
+  const itemIds = new Map<string, Types.ObjectId>();
+
   for (const [position, category] of DEMO_CATEGORIES.entries()) {
     const categoryId = await categories.create(tenantId, {
       brandId,
       name: category.name,
       position,
       active: true,
+      role: category.role ?? 'main',
     });
 
     for (const [itemPosition, item] of category.items.entries()) {
-      await items.create(tenantId, {
+      const itemId = await items.create(tenantId, {
         brandId,
         categoryId,
         name: item.name,
@@ -127,12 +130,31 @@ export async function seedDemoRestaurant(
         available: item.available ?? true,
         position: itemPosition,
         tags: item.tags ?? [],
+        pairsWith: [],
         modifierGroupIds: (item.groups ?? []).flatMap((key) => {
           const id = groupIds.get(key);
 
           return id ? [id] : [];
         }),
       });
+
+      itemIds.set(item.name, itemId);
+    }
+  }
+
+  // Las sugerencias a mano apuntan a productos que ya existen: segunda pasada.
+  for (const category of DEMO_CATEGORIES) {
+    for (const item of category.items) {
+      const itemId = itemIds.get(item.name);
+      const pairsWith = (item.pairsWith ?? []).flatMap((name) => {
+        const id = itemIds.get(name);
+
+        return id ? [id] : [];
+      });
+
+      if (itemId && pairsWith.length > 0) {
+        await items.updateOne(tenantId, { _id: itemId }, { pairsWith });
+      }
     }
   }
 

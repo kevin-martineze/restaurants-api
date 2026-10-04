@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
+import { CATEGORY_ROLES, CategoryRole } from '../domain/snapshot';
+
 @Schema({ collection: 'categories', timestamps: true, strict: true })
 export class Category {
   @Prop({ type: Types.ObjectId, required: true })
@@ -17,6 +19,10 @@ export class Category {
 
   @Prop({ required: true, default: true })
   active!: boolean;
+
+  /** Principal, acompañante, bebida o postre: decide qué se sugiere con qué. */
+  @Prop({ type: String, required: true, enum: CATEGORY_ROLES, default: 'main' })
+  role!: CategoryRole;
 }
 
 export type CategoryDocument = HydratedDocument<Category>;

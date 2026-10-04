@@ -17,6 +17,14 @@ export const ITEM_TAGS = ['popular', 'new', 'spicy', 'vegetarian'] as const;
 
 export type ItemTag = (typeof ITEM_TAGS)[number];
 
+/**
+ * El papel de una categoría en un pedido. Sirve para sugerir: a un plato
+ * principal le van bien un acompañante y una bebida.
+ */
+export const CATEGORY_ROLES = ['main', 'side', 'drink', 'dessert'] as const;
+
+export type CategoryRole = (typeof CATEGORY_ROLES)[number];
+
 export const snapshotModifierSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -41,6 +49,8 @@ export const snapshotItemSchema = z.object({
   available: z.boolean(),
   tags: z.array(z.enum(ITEM_TAGS)).default([]),
   groups: z.array(snapshotGroupSchema),
+  /** "Combina con…": productos que se agregan con un toque. */
+  suggestedItemIds: z.array(z.string()).default([]),
 });
 
 export const snapshotCategorySchema = z.object({

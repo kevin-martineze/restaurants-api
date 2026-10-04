@@ -42,6 +42,7 @@ export class MenuPublisher {
         name: category.name,
         position: category.position,
         active: category.active,
+        role: category.role,
       })),
       items: items.map((item) => ({
         id: item._id.toString(),
@@ -54,6 +55,7 @@ export class MenuPublisher {
         position: item.position,
         modifierGroupIds: item.modifierGroupIds.map((id) => id.toString()),
         tags: item.tags,
+        pairsWith: item.pairsWith.map((id) => id.toString()),
       })),
       groups: groups.map((group) => ({
         id: group._id.toString(),
