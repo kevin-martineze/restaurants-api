@@ -1,0 +1,14 @@
+# Los scripts de instalación están bloqueados por defecto en pnpm 10+. Acá se
+# decide uno por uno.
+#
+#   @swc/core     trae el binario de Rust que usa `nest build`
+#   @scarf/scarf  telemetría: no hace falta para construir ni para ejecutar
+allowBuilds:
+  '@swc/core': true
+  '@scarf/scarf': false
+
+# Una sola copia de Fastify en todo el árbol. `@nestjs/platform-fastify` fija
+# la suya; si los plugins resuelven otra, sus tipos dejan de encajar con la app
+# y `tsc` falla en cada `app.register`.
+overrides:
+  fastify: 5.11.3
