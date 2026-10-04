@@ -13,7 +13,7 @@ describe('slugProblem', () => {
   });
 
   it('rechaza rutas reservadas del equipo', () => {
-    expect(slugProblem('panel')).toBe('Ese enlace está reservado. Elige otro.');
+    expect(slugProblem('dashboard')).toBe('Ese enlace está reservado. Elige otro.');
   });
 
   it('rechaza formatos inválidos', () => {

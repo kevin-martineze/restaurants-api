@@ -6,19 +6,20 @@
  * aquí también.
  */
 export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
+  'account',
+  'admin',
   'api',
-  'cocina',
-  'domicilios',
-  'entrar',
-  'panel',
-  'plataforma',
-  'registro',
-  'salir',
-  'seguimiento',
-  'pedido',
-  'ayuda',
-  'terminos',
-  'privacidad',
+  'dashboard',
+  'help',
+  'kitchen',
+  'login',
+  'logout',
+  'platform',
+  'privacy',
+  'rider',
+  'settings',
+  'signup',
+  'terms',
 ]);
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
