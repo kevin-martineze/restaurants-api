@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { Env, validateEnv } from '@shared/config/env';
+import { AllExceptionsFilter } from '@shared/filters/all-exceptions.filter';
 import { HealthModule } from '@modules/health/health.module';
+import { MenuModule } from '@modules/menu/menu.module';
+import { OrganizationModule } from '@modules/organization/organization.module';
 
 @Module({
   imports: [
@@ -13,6 +16,9 @@ import { HealthModule } from '@modules/health/health.module';
       // Sin esto, un typo en una variable se descubre en la primera petición
       // que la usa, no al arrancar.
       validate: validateEnv,
+      // Las pruebas fijan su propio entorno; el `.env` de la máquina no debe
+      // colarse en ellas.
+      ignoreEnvFile: process.env.NODE_ENV === 'test',
     }),
 
     MongooseModule.forRootAsync({
@@ -33,7 +39,12 @@ import { HealthModule } from '@modules/health/health.module';
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 300 }]),
 
     HealthModule,
+    OrganizationModule,
+    MenuModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule {}

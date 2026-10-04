@@ -22,7 +22,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage --passWithNoTests",
     "db:up": "docker compose up -d",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "db:seed": "ts-node --transpile-only -r tsconfig-paths/register src/tasks/seed-demo.ts",
+    "test:e2e": "jest --config ./test/jest-e2e.config.js --runInBand"
   },
   "dependencies": {
     "@fastify/compress": "^8.0.1",
@@ -58,6 +60,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "globals": "^15.14.0",
     "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.4.3",
     "pino-pretty": "^13.0.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",

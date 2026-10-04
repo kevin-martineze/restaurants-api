@@ -68,7 +68,10 @@ Mongo no tiene RLS: el aislamiento lo garantiza el código.
 17. **Embeber lo que se lee junto y está acotado** (líneas del pedido,
     direcciones de un cliente). **Referenciar lo que crece sin límite** (pedidos
     de un cliente, ubicaciones del domiciliario).
-18. Los esquemas Mongoose usan `strict: true` y `timestamps: true`.
+18. Los esquemas Mongoose usan `strict: true` y `timestamps: true`. Todo campo
+    cuyo tipo sea una unión (`'open' | 'paused'`) o pueda ser `null` lleva
+    `type` explícito en `@Prop`: con `ts-node --transpile-only` no hay metadata
+    de tipos y Mongoose no lo adivina.
 
 ## 5. Entradas y salidas
 
@@ -89,8 +92,9 @@ Orden (lo hace cumplir ESLint): tipos → builtin → externos → `@shared` /
 
 ## 7. Gates
 
-`pnpm typecheck`, `pnpm lint:check`, `pnpm format:check`, `pnpm test` y
-`pnpm build` deben pasar.
+`pnpm typecheck`, `pnpm lint:check`, `pnpm format:check`, `pnpm test`,
+`pnpm test:e2e` y `pnpm build` deben pasar. Las pruebas de integración van en
+`test/*.e2e-spec.ts` y usan `createTestApp()` (Mongo en memoria).
 
 ## 8. Antes de crear algo nuevo
 
