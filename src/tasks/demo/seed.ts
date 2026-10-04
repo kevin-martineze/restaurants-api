@@ -153,6 +153,7 @@ export async function seedDemoRestaurant(
         description: item.description ?? null,
         price: item.price,
         imageUrl: DEMO_PHOTOS[item.name]?.url ?? null,
+        imageKey: null,
         available: item.available ?? true,
         position: itemPosition,
         tags: item.tags ?? [],

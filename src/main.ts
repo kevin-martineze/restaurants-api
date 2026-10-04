@@ -6,7 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import fastifyCompress from '@fastify/compress';
 import fastifyHelmet from '@fastify/helmet';
 import { Env } from '@shared/config/env';
-import { buildValidationPipe } from '@shared/config/validation-pipe';
+import { configureHttp } from '@shared/config/configure-http';
 
 import { AppModule } from './app.module';
 
@@ -52,8 +52,7 @@ async function bootstrap(): Promise<void> {
   const port = config.get('PORT', { infer: true });
   const corsOrigins = config.get('CORS_ORIGINS', { infer: true });
 
-  app.setGlobalPrefix(apiPrefix);
-  app.useGlobalPipes(buildValidationPipe());
+  await configureHttp(app);
 
   // El frontend habla con esta API servidor contra servidor; la lista vacía
   // significa que ningún navegador cruza, y está bien.

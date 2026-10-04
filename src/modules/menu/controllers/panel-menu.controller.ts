@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FastifyRequest } from 'fastify';
 import { StaffRoute } from '@shared/auth/roles.decorator';
 import { Role } from '@modules/auth/schemas/membership.schema';
 import { StaffContext } from '@shared/auth/staff';
 import { Staff } from '@shared/auth/staff.decorator';
+import { readUpload } from '@shared/media/upload';
 
 import {
   AvailabilityDto,
@@ -112,6 +114,31 @@ export class PanelMenuController {
     @Param('itemId') itemId: string,
   ): Promise<AdminMenu> {
     return this.admin.deleteItem(staff, brandId, itemId);
+  }
+
+  @Post('items/:itemId/image')
+  @StaffRoute(...EDITORS)
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Sube o reemplaza la foto del producto (se achica a 800 px).' })
+  async uploadImage(
+    @Staff() staff: StaffContext,
+    @Param('brandId') brandId: string,
+    @Param('itemId') itemId: string,
+    @Req() request: FastifyRequest,
+  ): Promise<AdminMenu> {
+    const upload = await readUpload(request);
+
+    return this.admin.setItemImage(staff, brandId, itemId, upload.buffer);
+  }
+
+  @Delete('items/:itemId/image')
+  @StaffRoute(...EDITORS)
+  removeImage(
+    @Staff() staff: StaffContext,
+    @Param('brandId') brandId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<AdminMenu> {
+    return this.admin.removeItemImage(staff, brandId, itemId);
   }
 
   @Patch('items/:itemId/availability')

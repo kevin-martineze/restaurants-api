@@ -22,6 +22,7 @@ pnpm start:dev
 - API: http://localhost:3100/v1
 - Swagger: http://localhost:3100/v1/docs
 - Salud: http://localhost:3100/v1/health/ready
+- Fotos subidas desde el panel (driver `local`): `./media`, servidas en http://localhost:3100/media
 
 Con Podman en vez de Docker, `podman compose` necesita el socket de Podman
 activo (una sola vez: `systemctl --user enable --now podman.socket`). Sin él:

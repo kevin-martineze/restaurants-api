@@ -20,6 +20,10 @@ describe('validateEnv', () => {
     expect(env.CORS_ORIGINS).toEqual(['http://a.co', 'http://b.co']);
   });
 
+  it('con S3 exige el bucket y las llaves', () => {
+    expect(() => validateEnv({ ...base, STORAGE_DRIVER: 's3' })).toThrow('S3_BUCKET');
+  });
+
   it('falla al arrancar si falta la conexión a Mongo', () => {
     expect(() => validateEnv({})).toThrow('MONGODB_URI');
   });

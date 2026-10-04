@@ -3,10 +3,12 @@
 #
 #   @swc/core     trae el binario de Rust que usa `nest build`
 #   argon2        compila o baja el binario nativo del hash de contraseñas
+#   sharp         baja libvips, con la que se achican las fotos
 #   @scarf/scarf  telemetría: no hace falta para construir ni para ejecutar
 allowBuilds:
   '@swc/core': true
   argon2: true
+  sharp: true
   '@scarf/scarf': false
 
 # Una sola copia de Fastify en todo el árbol. `@nestjs/platform-fastify` fija

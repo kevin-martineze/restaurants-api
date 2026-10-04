@@ -1,7 +1,11 @@
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
-import { buildValidationPipe } from '@shared/config/validation-pipe';
+import { configureHttp } from '@shared/config/configure-http';
 
 export interface TestApp {
   app: NestFastifyApplication;
@@ -18,6 +22,9 @@ export async function createTestApp(): Promise<TestApp> {
   process.env.MONGODB_URI = mongo.getUri('restaurants-test');
   process.env.NODE_ENV = 'test';
   process.env.JWT_SECRET = 'secreto-de-pruebas-de-integracion-con-32+';
+  // Las fotos de las pruebas van a un directorio temporal, nunca al de desarrollo.
+  process.env.STORAGE_DRIVER = 'local';
+  process.env.MEDIA_DIR = await mkdtemp(join(tmpdir(), 'restaurants-media-'));
 
   // `AppModule` valida el entorno al importarse: se importa después de fijar
   // la URI del Mongo en memoria, o tomaría la del `.env` local.
@@ -25,8 +32,7 @@ export async function createTestApp(): Promise<TestApp> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
 
-  app.setGlobalPrefix('v1');
-  app.useGlobalPipes(buildValidationPipe());
+  await configureHttp(app);
 
   await app.init();
   await app.getHttpAdapter().getInstance().ready();

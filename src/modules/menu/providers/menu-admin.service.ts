@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { isValidObjectId, Types } from 'mongoose';
 import { StaffContext } from '@shared/auth/staff';
+import { processProductImage, productImageKey } from '@shared/media/images';
+import { MediaStorage } from '@shared/storage/media-storage';
 import { BrandsRepository } from '@modules/organization/providers/brands.repository';
 
 import { groupProblem, reorder } from '../domain/menu-rules';
@@ -81,6 +83,7 @@ export class MenuAdminService {
     private readonly items: ItemsRepository,
     private readonly groups: ModifierGroupsRepository,
     private readonly publisher: MenuPublisher,
+    private readonly storage: MediaStorage,
   ) {}
 
   async menu(staff: StaffContext, brandId: string): Promise<AdminMenu> {
@@ -225,6 +228,7 @@ export class MenuAdminService {
       description: dto.description?.trim() || null,
       price: dto.price,
       imageUrl: null,
+      imageKey: null,
       available: dto.available ?? true,
       position: siblings.length,
       tags: dto.tags ?? [],
@@ -271,10 +275,13 @@ export class MenuAdminService {
   async deleteItem(staff: StaffContext, brandId: string, itemId: string) {
     const brand = await this.brandFor(staff, brandId);
     const id = toId(itemId, 'ese producto');
+    const item = await this.items.findOne(staff.tenantId, { _id: id, brandId: brand._id });
 
-    if ((await this.items.deleteMany(staff.tenantId, { _id: id, brandId: brand._id })) === 0) {
+    if (!item || (await this.items.deleteMany(staff.tenantId, { _id: id })) === 0) {
       throw notFound('ese producto');
     }
+
+    if (item.imageKey) await this.storage.remove([item.imageKey]);
 
     // Que nadie siga sugiriendo un producto que ya no existe.
     for (const other of await this.items.find(staff.tenantId, {
@@ -317,6 +324,50 @@ export class MenuAdminService {
     available: boolean,
   ) {
     return this.updateItem(staff, brandId, itemId, { available });
+  }
+
+  /**
+   * Sube o reemplaza la foto de un producto: se achica a 800 px en WebP y la
+   * anterior, si la había subido el restaurante, se borra.
+   */
+  async setItemImage(staff: StaffContext, brandId: string, itemId: string, original: Buffer) {
+    const brand = await this.brandFor(staff, brandId);
+    const id = toId(itemId, 'ese producto');
+    const item = await this.items.findOne(staff.tenantId, { _id: id, brandId: brand._id });
+
+    if (!item) throw notFound('ese producto');
+
+    const body = await processProductImage(original);
+    const key = productImageKey(staff.tenantId.toString(), id.toString());
+
+    await this.storage.put([{ key, body, contentType: 'image/webp' }]);
+    await this.items.updateOne(
+      staff.tenantId,
+      { _id: id },
+      { $set: { imageUrl: this.storage.publicUrl(key), imageKey: key } },
+    );
+
+    if (item.imageKey) await this.storage.remove([item.imageKey]);
+
+    return this.saved(staff, brand._id, brandId);
+  }
+
+  async removeItemImage(staff: StaffContext, brandId: string, itemId: string) {
+    const brand = await this.brandFor(staff, brandId);
+    const id = toId(itemId, 'ese producto');
+    const item = await this.items.findOne(staff.tenantId, { _id: id, brandId: brand._id });
+
+    if (!item) throw notFound('ese producto');
+
+    await this.items.updateOne(
+      staff.tenantId,
+      { _id: id },
+      { $set: { imageUrl: null, imageKey: null } },
+    );
+
+    if (item.imageKey) await this.storage.remove([item.imageKey]);
+
+    return this.saved(staff, brand._id, brandId);
   }
 
   // --- Grupos de opciones ----------------------------------------------------

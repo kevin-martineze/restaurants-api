@@ -33,6 +33,14 @@ export class Item {
   @Prop({ type: String, default: null })
   imageUrl!: string | null;
 
+  /**
+   * Clave de la foto en el almacenamiento, si la subió el restaurante. Sirve
+   * para borrar la anterior al reemplazarla. `null` con `imageUrl` puesto: una
+   * foto externa (la demostración), que no se borra.
+   */
+  @Prop({ type: String, default: null })
+  imageKey!: string | null;
+
   /** Apagado en toda la marca. Una sucursal puede apagarlo solo para ella (`BranchItem`). */
   @Prop({ required: true, default: true })
   available!: boolean;

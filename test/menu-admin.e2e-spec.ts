@@ -1,4 +1,5 @@
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import sharp from 'sharp';
 import { z } from 'zod';
 
 import { DEMO_PASSWORD } from '../src/tasks/demo/la-parrilla-de-tono';
@@ -20,6 +21,7 @@ const adminMenuSchema = z.object({
           name: z.string(),
           price: z.number(),
           available: z.boolean(),
+          imageUrl: z.string().nullable(),
           modifierGroupIds: z.array(z.string()),
         }),
       ),
@@ -266,6 +268,100 @@ describe('Administración de la carta', () => {
 
     expect(after.categories[0]?.name).toBe('Bebidas');
     expect((await publicMenu()).categories[0]?.name).toBe('Bebidas');
+  });
+
+  describe('fotos', () => {
+    /** Un cuerpo multipart con un solo archivo, como lo manda el navegador. */
+    function multipart(file: Buffer, mimetype: string) {
+      const boundary = '----prueba-foto';
+      const head = Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="foto"\r\nContent-Type: ${mimetype}\r\n\r\n`,
+      );
+      const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+
+      return {
+        payload: Buffer.concat([head, file, tail]),
+        headers: {
+          'content-type': `multipart/form-data; boundary=${boundary}`,
+          authorization: `Bearer ${tokens.owner ?? ''}`,
+        },
+      };
+    }
+
+    async function upload(itemId: string, file: Buffer, mimetype = 'image/jpeg') {
+      const { payload, headers } = multipart(file, mimetype);
+
+      return app.inject({
+        method: 'POST',
+        url: `${menuUrl()}/items/${itemId}/image`,
+        payload,
+        headers,
+      });
+    }
+
+    function mediaPath(url: string | null | undefined): string {
+      return new URL(url ?? '').pathname;
+    }
+
+    it('achica la foto a 800 px en WebP, la sirve y borra la anterior al reemplazarla', async () => {
+      const item = itemNamed(await adminMenu(), 'Sencilla');
+      const photo = await sharp({
+        create: { width: 2400, height: 1800, channels: 3, background: '#c0392b' },
+      })
+        .jpeg()
+        .toBuffer();
+
+      const first = adminMenuSchema.parse((await upload(item.id, photo)).json());
+      const firstUrl = itemNamed(first, 'Sencilla').imageUrl;
+      const served = await app.inject({ method: 'GET', url: mediaPath(firstUrl) });
+
+      expect(served.statusCode).toBe(200);
+      expect(served.headers['content-type']).toBe('image/webp');
+      expect((await sharp(served.rawPayload).metadata()).width).toBe(800);
+
+      const second = adminMenuSchema.parse((await upload(item.id, photo)).json());
+      const secondUrl = itemNamed(second, 'Sencilla').imageUrl;
+
+      expect(secondUrl).not.toBe(firstUrl);
+      expect((await app.inject({ method: 'GET', url: mediaPath(firstUrl) })).statusCode).toBe(404);
+
+      // La carta del cliente ya muestra la foto nueva.
+      const published = z
+        .object({
+          categories: z.array(
+            z.object({
+              items: z.array(z.object({ id: z.string(), imageUrl: z.string().nullable() })),
+            }),
+          ),
+        })
+        .parse(
+          (await app.inject({ method: 'GET', url: '/v1/public/la-parrilla-de-tono/menu' })).json(),
+        );
+
+      expect(
+        published.categories.flatMap((c) => c.items).find((i) => i.id === item.id)?.imageUrl,
+      ).toBe(secondUrl);
+    });
+
+    it('rechaza lo que no es una imagen', async () => {
+      const item = itemNamed(await adminMenu(), 'Costeña');
+      const response = await upload(item.id, Buffer.from('no soy una foto'), 'image/png');
+
+      expect(errorSchema.parse(response.json()).message).toBe('El archivo no es una imagen.');
+    });
+
+    it('la cocina no sube fotos', async () => {
+      const item = itemNamed(await adminMenu(), 'Costeña');
+      const { payload, headers } = multipart(Buffer.from('x'), 'image/png');
+      const response = await app.inject({
+        method: 'POST',
+        url: `${menuUrl()}/items/${item.id}/image`,
+        payload,
+        headers: { ...headers, authorization: `Bearer ${tokens.kitchen ?? ''}` },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
   });
 
   it('no se puede editar la carta de otro restaurante', async () => {
