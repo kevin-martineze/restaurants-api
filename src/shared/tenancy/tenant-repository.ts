@@ -49,9 +49,19 @@ export abstract class TenantRepository<T extends TenantOwned> {
     // `_id` del documento creado.
     const _id = new Types.ObjectId();
 
-    await this.model.create([{ ...data, tenantId, _id }], { session });
+    await this.createWithId(tenantId, _id, data, session);
 
     return _id;
+  }
+
+  /** Como `create`, con un id elegido antes: para avisar de él después de la transacción. */
+  async createWithId(
+    tenantId: Types.ObjectId,
+    _id: Types.ObjectId,
+    data: Omit<T, 'tenantId'>,
+    session?: ClientSession,
+  ): Promise<void> {
+    await this.model.create([{ ...data, tenantId, _id }], { session });
   }
 
   /** Cuántos documentos coincidieron (0 si no existe o es de otro tenant). */

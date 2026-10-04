@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 
 import { seedDemoRestaurant } from './demo/seed';
-import { DEMO_SLUG } from './demo/la-parrilla-de-tono';
+import { DEMO_PASSWORD, DEMO_SLUG, DEMO_TEAM } from './demo/la-parrilla-de-tono';
 
 /**
  * `pnpm db:seed`: carga el restaurante de demostración en la base del `.env`.
@@ -28,6 +28,9 @@ async function main(): Promise<void> {
   try {
     await seedDemoRestaurant(app);
     logger.log(`Restaurante de demostración listo: /public/${DEMO_SLUG}/menu`);
+    logger.log(
+      `Equipo (contraseña "${DEMO_PASSWORD}"): ${DEMO_TEAM.map((m) => `${m.email} (${m.role})`).join(', ')}`,
+    );
   } finally {
     await app.close();
   }

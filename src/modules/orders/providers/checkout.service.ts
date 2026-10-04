@@ -7,7 +7,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { Connection, Types } from 'mongoose';
 import { formatCop } from '@shared/utils/money';
 import { normalizeColombianMobile } from '@shared/utils/phone';
 import { CustomersRepository } from '@modules/customers/providers/customers.repository';
@@ -26,6 +26,7 @@ import { CheckoutFulfillment, OrderStatus } from '../domain/order-status';
 import { CreateOrderDto } from '../dtos/checkout.dto';
 
 import { OrderCountersRepository } from './order-counters.repository';
+import { OrderEventsBus } from './order-events.bus';
 import { OrdersRepository } from './orders.repository';
 
 /** Versión del texto de autorización de datos que ve el cliente en el checkout. */
@@ -77,6 +78,7 @@ export class CheckoutService {
     private readonly orders: OrdersRepository,
     private readonly counters: OrderCountersRepository,
     private readonly customers: CustomersRepository,
+    private readonly bus: OrderEventsBus,
     @InjectConnection() private readonly connection: Connection,
   ) {}
 
@@ -153,6 +155,7 @@ export class CheckoutService {
     const trackingToken = randomBytes(18).toString('base64url');
 
     try {
+      const orderId = new Types.ObjectId();
       const number = await this.connection.transaction(async (session) => {
         const next = await this.counters.next(brand.tenantId, branch._id, session);
         const customerId = await this.customers.recordOrder(
@@ -168,8 +171,9 @@ export class CheckoutService {
           session,
         );
 
-        await this.orders.create(
+        await this.orders.createWithId(
           brand.tenantId,
+          orderId,
           {
             brandId: brand._id,
             branchId: branch._id,
@@ -209,6 +213,18 @@ export class CheckoutService {
         );
 
         return next;
+      });
+
+      // Después de confirmar la transacción: el tablero nunca se entera de un
+      // pedido que al final no se guardó.
+      this.bus.publish({
+        kind: 'created',
+        tenantId: brand.tenantId.toString(),
+        branchId: branch._id.toString(),
+        orderId: orderId.toString(),
+        number,
+        status: 'received',
+        at: now.toISOString(),
       });
 
       return { number, trackingToken, total: preview.total, etaMinutes: preview.etaMinutes };

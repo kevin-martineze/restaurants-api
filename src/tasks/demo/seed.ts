@@ -1,5 +1,8 @@
 import { INestApplicationContext } from '@nestjs/common';
 import { Types } from 'mongoose';
+import { MembershipsRepository } from '@modules/auth/providers/memberships.repository';
+import { PasswordService } from '@modules/auth/providers/password.service';
+import { UsersRepository } from '@modules/auth/providers/users.repository';
 import { CustomersRepository } from '@modules/customers/providers/customers.repository';
 import { BranchItemsRepository } from '@modules/menu/providers/branch-items.repository';
 import { CategoriesRepository } from '@modules/menu/providers/categories.repository';
@@ -18,7 +21,9 @@ import {
   DEMO_BRAND,
   DEMO_CATEGORIES,
   DEMO_GROUPS,
+  DEMO_PASSWORD,
   DEMO_SLUG,
+  DEMO_TEAM,
 } from './la-parrilla-de-tono';
 import { DEMO_PHOTOS } from './photos';
 
@@ -56,6 +61,9 @@ export async function seedDemoRestaurant(
   const orders = app.get(OrdersRepository);
   const counters = app.get(OrderCountersRepository);
   const customers = app.get(CustomersRepository);
+  const users = app.get(UsersRepository);
+  const memberships = app.get(MembershipsRepository);
+  const passwords = app.get(PasswordService);
 
   const slug = overrides.slug ?? DEMO_SLUG;
   const name = overrides.name ?? DEMO_BRAND.name;
@@ -68,6 +76,7 @@ export async function seedDemoRestaurant(
     // varias conexiones a la vez contra Mongo en Podman sin root a veces
     // termina en ECONNRESET a mitad de la semilla.
     for (const repository of [
+      memberships,
       orders,
       customers,
       snapshots,
@@ -176,6 +185,18 @@ export async function seedDemoRestaurant(
   }
 
   await publisher.publish(tenantId, brandId, branchId);
+
+  // El equipo solo existe para el slug de la demostración: las pruebas siembran
+  // otros restaurantes y no deben robarle los usuarios.
+  if (slug === DEMO_SLUG) {
+    const passwordHash = await passwords.hash(DEMO_PASSWORD);
+
+    for (const member of DEMO_TEAM) {
+      const userId = await users.upsert({ email: member.email, name: member.name, passwordHash });
+
+      await memberships.create(tenantId, { userId, role: member.role, branchIds: [] });
+    }
+  }
 
   return { tenantId, brandId, branchId };
 }

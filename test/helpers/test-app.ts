@@ -17,6 +17,7 @@ export async function createTestApp(): Promise<TestApp> {
 
   process.env.MONGODB_URI = mongo.getUri('restaurants-test');
   process.env.NODE_ENV = 'test';
+  process.env.JWT_SECRET = 'secreto-de-pruebas-de-integracion-con-32+';
 
   // `AppModule` valida el entorno al importarse: se importa después de fijar
   // la URI del Mongo en memoria, o tomaría la del `.env` local.

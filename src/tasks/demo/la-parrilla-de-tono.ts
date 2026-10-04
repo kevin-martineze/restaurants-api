@@ -1,3 +1,4 @@
+import { Role } from '@modules/auth/schemas/membership.schema';
 import { CategoryRole, ItemTag } from '@modules/menu/domain/snapshot';
 
 /**
@@ -259,4 +260,17 @@ export const DEMO_CATEGORIES: { name: string; role?: CategoryRole; items: DemoIt
       { name: 'Agua', description: '600 ml.', price: 3000 },
     ],
   },
+];
+
+/**
+ * El equipo de la demostración. Correos `.test` (nunca existen) y una
+ * contraseña conocida: solo para desarrollo, la semilla no corre en producción.
+ */
+export const DEMO_PASSWORD = 'demo-parrilla-2026';
+
+export const DEMO_TEAM: { email: string; name: string; role: Role }[] = [
+  { email: 'dueno@laparrilla.test', name: 'Toño Pérez', role: 'owner' },
+  { email: 'caja@laparrilla.test', name: 'Caja El Prado', role: 'cashier' },
+  { email: 'cocina@laparrilla.test', name: 'Cocina El Prado', role: 'kitchen' },
+  { email: 'domicilios@laparrilla.test', name: 'Domicilios El Prado', role: 'rider' },
 ];

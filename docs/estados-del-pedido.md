@@ -41,6 +41,22 @@ cash_on_delivery → collected
 Un pedido con pago en línea no pasa a `accepted` mientras el pago esté
 `pending`, salvo que el restaurante lo acepte a mano.
 
+## Quién mueve qué
+
+| Hacia                                            | Roles                              |
+| ------------------------------------------------ | ---------------------------------- |
+| `accepted`, `cancelled`, `picked_up`, `returned` | dueño, gerente, caja               |
+| `preparing`, `ready`                             | dueño, gerente, caja, cocina       |
+| `dispatched`, `delivered`, `failed_delivery`     | dueño, gerente, caja, domiciliario |
+
+Cancelar exige motivo: `customer`, `out_of_stock`, `out_of_coverage`,
+`restaurant`, `other`. Al llegar a `delivered` o `picked_up`, el pago contra
+entrega queda `collected`.
+
+La regla vive en `src/modules/orders/domain/transitions.ts` (`checkTransition`),
+con pruebas de cada camino. Si dos personas mueven el mismo pedido a la vez,
+gana la primera: la segunda recibe un 409 en vez de pisar el cambio.
+
 ## Reglas
 
 - Las transiciones válidas viven en **una sola función**; ningún servicio

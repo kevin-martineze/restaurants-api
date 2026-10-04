@@ -1,7 +1,10 @@
 import { validateEnv } from './env';
 
 describe('validateEnv', () => {
-  const base = { MONGODB_URI: 'mongodb://localhost:27017/restaurants?replicaSet=rs0' };
+  const base = {
+    MONGODB_URI: 'mongodb://localhost:27017/restaurants?replicaSet=rs0',
+    JWT_SECRET: 'un-secreto-de-prueba-de-al-menos-32-caracteres',
+  };
 
   it('aplica los valores por defecto', () => {
     const env = validateEnv(base);

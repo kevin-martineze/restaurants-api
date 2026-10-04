@@ -24,6 +24,14 @@ const envSchema = z.object({
   MONGODB_URI: z.string().startsWith('mongodb'),
 
   /**
+   * Firma los tokens del equipo. 32 caracteres es el mínimo razonable para
+   * HS256. Sin valor por defecto: un default termina firmando producción.
+   */
+  JWT_SECRET: z.string().min(32),
+  /** Cuánto dura la sesión de alguien del equipo: un turno. */
+  JWT_TTL: z.string().min(1).default('12h'),
+
+  /**
    * Orígenes permitidos, separados por coma. Se normaliza a array acá para que
    * ningún módulo tenga que volver a partir el string.
    */

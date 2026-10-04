@@ -25,6 +25,25 @@ Por eso `CORS_ORIGINS` va vacío por defecto.
 | `/v1/webhooks/*`                 | Wompi, WhatsApp                                 | Firma del proveedor                        |
 | `/v1/health`, `/v1/health/ready` | Orquestador                                     | Ninguna                                    |
 
+## Acceso del equipo
+
+- Usuarios de la plataforma (`users`, contraseña con argon2id) y membresías
+  por restaurante (`memberships`: rol y sedes).
+- `POST /v1/auth/login` devuelve un JWT de 12 horas (un turno) y los
+  restaurantes y sedes de la persona. Todavía sin token de renovación: al
+  vencer, se vuelve a entrar.
+- `@StaffRoute(...roles)` protege una ruta del panel: valida el token y
+  consulta la membresía **en cada petición**, así quitar el acceso surte
+  efecto de inmediato.
+
+## Tiempo real del tablero
+
+`GET /v1/tenants/:tenantId/branches/:branchId/orders/events` es un stream SSE
+con un aviso por pedido creado o movido y un latido cada 25 s. Hoy los avisos
+viajan en memoria (`OrderEventsBus`): sirve con una sola instancia de la API.
+Con varias, se cambia por Redis pub/sub sin tocar a quien publica ni a quien
+escucha.
+
 ## Multitenancy
 
 Base compartida, aislamiento por `tenantId` en cada documento y una capa de
