@@ -100,7 +100,9 @@ export async function seedDemoRestaurant(
     name,
     slug,
     logoUrl: null,
+    logoKey: null,
     coverUrl: DEMO_PHOTOS.cover?.url ?? null,
+    coverKey: null,
     defaultBranchId: null,
   });
   const branchId = await branches.create(tenantId, {

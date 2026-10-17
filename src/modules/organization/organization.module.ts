@@ -3,7 +3,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { PanelBranchesController } from './controllers/panel-branches.controller';
 import { PanelBranchSettingsController } from './controllers/panel-branch-settings.controller';
+import { PanelBrandSettingsController } from './controllers/panel-brand-settings.controller';
 import { BranchSettingsService } from './providers/branch-settings.service';
+import { BrandSettingsService } from './providers/brand-settings.service';
 import { BranchesRepository } from './providers/branches.repository';
 import { BrandsRepository } from './providers/brands.repository';
 import { TenantsRepository } from './providers/tenants.repository';
@@ -19,8 +21,18 @@ import { Tenant, TenantSchema } from './schemas/tenant.schema';
       { name: Branch.name, schema: BranchSchema },
     ]),
   ],
-  controllers: [PanelBranchesController, PanelBranchSettingsController],
-  providers: [TenantsRepository, BrandsRepository, BranchesRepository, BranchSettingsService],
+  controllers: [
+    PanelBranchesController,
+    PanelBranchSettingsController,
+    PanelBrandSettingsController,
+  ],
+  providers: [
+    TenantsRepository,
+    BrandsRepository,
+    BranchesRepository,
+    BranchSettingsService,
+    BrandSettingsService,
+  ],
   exports: [TenantsRepository, BrandsRepository, BranchesRepository],
 })
 export class OrganizationModule {}

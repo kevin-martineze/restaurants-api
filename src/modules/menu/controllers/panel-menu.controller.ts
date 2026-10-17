@@ -35,6 +35,7 @@ export class PanelMenuController {
 
   @Post('categories')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Crea una categoría.' })
   createCategory(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -45,6 +46,7 @@ export class PanelMenuController {
 
   @Post('categories/reorder')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Reordena las categorías.' })
   reorderCategories(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -55,6 +57,7 @@ export class PanelMenuController {
 
   @Patch('categories/:categoryId')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Cambia el nombre, el rol o si una categoría se muestra.' })
   updateCategory(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -66,6 +69,7 @@ export class PanelMenuController {
 
   @Delete('categories/:categoryId')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Borra una categoría vacía.' })
   deleteCategory(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -76,6 +80,7 @@ export class PanelMenuController {
 
   @Post('categories/:categoryId/items/reorder')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Reordena los productos de una categoría.' })
   reorderItems(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -87,6 +92,7 @@ export class PanelMenuController {
 
   @Post('items')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Crea un producto.' })
   createItem(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -97,6 +103,7 @@ export class PanelMenuController {
 
   @Patch('items/:itemId')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Cambia un producto.' })
   updateItem(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -108,6 +115,7 @@ export class PanelMenuController {
 
   @Delete('items/:itemId')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Borra un producto.' })
   deleteItem(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -133,6 +141,7 @@ export class PanelMenuController {
 
   @Delete('items/:itemId/image')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Quita la foto del producto.' })
   removeImage(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -155,6 +164,7 @@ export class PanelMenuController {
 
   @Post('groups')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Crea un grupo de opciones.' })
   createGroup(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -165,6 +175,7 @@ export class PanelMenuController {
 
   @Patch('groups/:groupId')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Cambia un grupo de opciones.' })
   updateGroup(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,
@@ -176,6 +187,7 @@ export class PanelMenuController {
 
   @Delete('groups/:groupId')
   @StaffRoute(...EDITORS)
+  @ApiOperation({ summary: 'Borra un grupo de opciones.' })
   deleteGroup(
     @Staff() staff: StaffContext,
     @Param('brandId') brandId: string,

@@ -1,8 +1,11 @@
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { firstValueFrom, take, timeout } from 'rxjs';
+import sharp from 'sharp';
 import { z } from 'zod';
 import { MembershipsRepository } from '@modules/auth/providers/memberships.repository';
 import { OrderEventsBus } from '@modules/orders/providers/order-events.bus';
+import { FOREGROUND_DARK, FOREGROUND_LIGHT } from '@modules/organization/domain/brand-settings';
+import { BrandsRepository } from '@modules/organization/providers/brands.repository';
 
 import { DEMO_PASSWORD } from '../src/tasks/demo/la-parrilla-de-tono';
 import { seedDemoRestaurant, SeededRestaurant } from '../src/tasks/demo/seed';
@@ -42,6 +45,15 @@ const settingsSchema = z.object({
   location: z.object({ lat: z.number(), lng: z.number() }).nullable(),
   deliveryRings: z.array(z.object({ maxKm: z.number(), fee: z.number(), minOrder: z.number() })),
   paymentMethods: z.array(z.string()),
+});
+
+const brandSettingsSchema = z.object({
+  slug: z.string(),
+  name: z.string(),
+  tagline: z.string().nullable(),
+  theme: z.object({ primary: z.string(), primaryForeground: z.string() }),
+  logoUrl: z.string().nullable(),
+  coverUrl: z.string().nullable(),
 });
 
 describe('Panel del restaurante', () => {
@@ -85,6 +97,8 @@ describe('Panel del restaurante', () => {
           payload,
           headers: { authorization: `Bearer ${token}` },
         }),
+      delete: (url: string) =>
+        app.inject({ method: 'DELETE', url, headers: { authorization: `Bearer ${token}` } }),
     };
   }
 
@@ -437,6 +451,146 @@ describe('Panel del restaurante', () => {
       });
 
       expect(preview.json()).toMatchObject({ deliveryFee: 4321 });
+    });
+  });
+
+  describe('la marca', () => {
+    const settingsUrl = () => `${base()}/brands/${parrilla.brandId.toString()}/settings`;
+    const logoUrl = () => `${base()}/brands/${parrilla.brandId.toString()}/logo`;
+    const coverUrl = () => `${base()}/brands/${parrilla.brandId.toString()}/cover`;
+    let original: z.infer<typeof brandSettingsSchema>;
+
+    beforeAll(async () => {
+      original = brandSettingsSchema.parse((await staff('owner').get(settingsUrl())).json());
+    });
+
+    afterAll(async () => {
+      const brands = app.get(BrandsRepository);
+
+      await brands.updateOne(
+        parrilla.tenantId,
+        { _id: parrilla.brandId },
+        {
+          $set: {
+            name: original.name,
+            tagline: original.tagline,
+            theme: original.theme,
+            logoUrl: original.logoUrl,
+            logoKey: null,
+            coverUrl: original.coverUrl,
+            coverKey: null,
+          },
+        },
+      );
+    });
+
+    function multipart(file: Buffer, mimetype: string) {
+      const boundary = '----prueba-marca';
+      const head = Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="image"; filename="foto"\r\nContent-Type: ${mimetype}\r\n\r\n`,
+      );
+      const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+
+      return {
+        payload: Buffer.concat([head, file, tail]),
+        headers: {
+          'content-type': `multipart/form-data; boundary=${boundary}`,
+          authorization: `Bearer ${tokens.owner ?? ''}`,
+        },
+      };
+    }
+
+    async function photo() {
+      return sharp({
+        create: { width: 1600, height: 900, channels: 3, background: '#c0392b' },
+      })
+        .jpeg()
+        .toBuffer();
+    }
+
+    it('el dueño guarda nombre, lema y color, con el contraste calculado', async () => {
+      const response = await staff('owner').patch(settingsUrl(), {
+        name: 'Parrilla Norte',
+        tagline: 'Leña y mar',
+        theme: { primary: '#111111' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(brandSettingsSchema.parse(response.json())).toMatchObject({
+        name: 'Parrilla Norte',
+        tagline: 'Leña y mar',
+        theme: { primary: '#111111', primaryForeground: FOREGROUND_LIGHT },
+      });
+      expect((await staff('owner').get(settingsUrl())).json()).toMatchObject({
+        name: 'Parrilla Norte',
+      });
+    });
+
+    it('un color claro pide texto casi negro', async () => {
+      const response = await staff('owner').patch(settingsUrl(), {
+        theme: { primary: '#ffffff' },
+      });
+
+      expect(brandSettingsSchema.parse(response.json()).theme.primaryForeground).toBe(
+        FOREGROUND_DARK,
+      );
+    });
+
+    it('rechaza un color que no es hex ni oklch', async () => {
+      const response = await staff('owner').patch(settingsUrl(), {
+        theme: { primary: 'rojo' },
+      });
+
+      expect(errorSchema.parse(response.json())).toMatchObject({ error: 'invalid_color' });
+    });
+
+    it('sube y quita el logo, achicándolo a 512 px', async () => {
+      const { payload, headers } = multipart(await photo(), 'image/jpeg');
+      const uploaded = await app.inject({ method: 'POST', url: logoUrl(), payload, headers });
+
+      expect(uploaded.statusCode).toBe(201);
+
+      const withLogo = brandSettingsSchema.parse(uploaded.json());
+
+      expect(withLogo.logoUrl).not.toBeNull();
+
+      const served = await app.inject({ method: 'GET', url: new URL(withLogo.logoUrl!).pathname });
+
+      expect(served.statusCode).toBe(200);
+      expect(served.headers['content-type']).toBe('image/webp');
+      expect((await sharp(served.rawPayload).metadata()).width).toBe(512);
+
+      const removed = brandSettingsSchema.parse((await staff('owner').delete(logoUrl())).json());
+
+      expect(removed.logoUrl).toBeNull();
+    });
+
+    it('sube y quita la portada', async () => {
+      const { payload, headers } = multipart(await photo(), 'image/jpeg');
+      const uploaded = await app.inject({ method: 'POST', url: coverUrl(), payload, headers });
+
+      expect(uploaded.statusCode).toBe(201);
+
+      const withCover = brandSettingsSchema.parse(uploaded.json());
+
+      expect(withCover.coverUrl).not.toBeNull();
+      expect((await staff('owner').delete(coverUrl())).statusCode).toBe(200);
+      expect(
+        brandSettingsSchema.parse((await staff('owner').get(settingsUrl())).json()).coverUrl,
+      ).toBeNull();
+    });
+
+    it('caja y cocina no ven ni cambian la marca', async () => {
+      expect((await staff('cashier').get(settingsUrl())).statusCode).toBe(403);
+      expect((await staff('kitchen').patch(settingsUrl(), { name: 'x' })).statusCode).toBe(403);
+    });
+
+    it('una marca de otro restaurante no existe', async () => {
+      const response = await staff('owner').get(
+        `${base()}/brands/${otro.brandId.toString()}/settings`,
+      );
+
+      expect(response.statusCode).toBe(404);
     });
   });
 

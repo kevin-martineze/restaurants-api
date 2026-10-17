@@ -44,9 +44,17 @@ export class Brand {
   @Prop({ type: String, default: null })
   logoUrl!: string | null;
 
+  /** Clave en el storage del logo, si lo subió el restaurante (para borrarlo). */
+  @Prop({ type: String, default: null })
+  logoKey!: string | null;
+
   /** Foto de portada de la carta. */
   @Prop({ type: String, default: null })
   coverUrl!: string | null;
+
+  /** Clave en el storage de la portada, si la subió el restaurante. */
+  @Prop({ type: String, default: null })
+  coverKey!: string | null;
 
   @Prop({ type: BrandTheme, required: true, default: () => ({}) })
   theme!: BrandTheme;
