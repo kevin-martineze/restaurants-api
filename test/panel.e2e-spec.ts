@@ -33,6 +33,17 @@ const staffOrderSchema = z.object({
 
 const errorSchema = z.object({ statusCode: z.number(), error: z.string(), message: z.string() });
 
+const settingsSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  schedule: z.array(z.object({ day: z.number(), opens: z.string(), closes: z.string() })),
+  etaMinutes: z.number(),
+  fulfillment: z.array(z.string()),
+  location: z.object({ lat: z.number(), lng: z.number() }).nullable(),
+  deliveryRings: z.array(z.object({ maxKm: z.number(), fee: z.number(), minOrder: z.number() })),
+  paymentMethods: z.array(z.string()),
+});
+
 describe('Panel del restaurante', () => {
   let testApp: TestApp;
   let app: NestFastifyApplication;
@@ -63,6 +74,13 @@ describe('Panel del restaurante', () => {
       patch: (url: string, payload: Record<string, unknown>) =>
         app.inject({
           method: 'PATCH',
+          url,
+          payload,
+          headers: { authorization: `Bearer ${token}` },
+        }),
+      put: (url: string, payload: Record<string, unknown>) =>
+        app.inject({
+          method: 'PUT',
           url,
           payload,
           headers: { authorization: `Bearer ${token}` },
@@ -321,6 +339,104 @@ describe('Panel del restaurante', () => {
       );
 
       expect(response.statusCode).toBe(403);
+    });
+  });
+
+  describe('configuración de la sede', () => {
+    const url = () => `${base()}/branches/${parrilla.branchId.toString()}/settings`;
+    let original: z.infer<typeof settingsSchema>;
+
+    beforeAll(async () => {
+      original = settingsSchema.parse((await staff('owner').get(url())).json());
+    });
+
+    afterAll(async () => {
+      await staff('owner').put(url(), original);
+    });
+
+    it('el dueño guarda y relee la configuración, con los anillos ordenados', async () => {
+      const response = await staff('owner').put(url(), {
+        ...original,
+        name: 'Sede Norte',
+        etaMinutes: 45,
+        deliveryRings: [
+          { maxKm: 9, fee: 7000, minOrder: 40000 },
+          { maxKm: 3, fee: 3000, minOrder: 20000 },
+        ],
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(settingsSchema.parse(response.json())).toMatchObject({
+        name: 'Sede Norte',
+        etaMinutes: 45,
+        deliveryRings: [
+          { maxKm: 3, fee: 3000, minOrder: 20000 },
+          { maxKm: 9, fee: 7000, minOrder: 40000 },
+        ],
+      });
+
+      expect((await staff('owner').get(url())).json()).toMatchObject({
+        name: 'Sede Norte',
+        etaMinutes: 45,
+      });
+    });
+
+    it('rechaza domicilio sin ubicación', async () => {
+      const response = await staff('owner').put(url(), {
+        ...original,
+        fulfillment: ['delivery', 'pickup'],
+        location: null,
+      });
+
+      expect(errorSchema.parse(response.json())).toMatchObject({
+        error: 'delivery_without_coverage',
+      });
+    });
+
+    it('rechaza turnos del mismo día que se pisan', async () => {
+      const response = await staff('owner').put(url(), {
+        ...original,
+        schedule: [
+          { day: 1, opens: '11:00', closes: '16:00' },
+          { day: 1, opens: '15:00', closes: '22:00' },
+        ],
+      });
+
+      expect(errorSchema.parse(response.json())).toMatchObject({
+        error: 'overlapping_schedule',
+      });
+    });
+
+    it('caja y cocina no pueden ver ni cambiar la configuración', async () => {
+      expect((await staff('cashier').get(url())).statusCode).toBe(403);
+      expect((await staff('kitchen').put(url(), original)).statusCode).toBe(403);
+    });
+
+    it('una sede de otro restaurante no existe', async () => {
+      const response = await staff('owner').get(
+        `${base()}/branches/${otro.branchId.toString()}/settings`,
+      );
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('el checkout usa los anillos nuevos', async () => {
+      await staff('owner').put(url(), {
+        ...original,
+        deliveryRings: [{ maxKm: 50, fee: 4321, minOrder: 1000 }],
+      });
+
+      const preview = await app.inject({
+        method: 'POST',
+        url: '/v1/public/la-parrilla-de-tono/checkout/preview',
+        payload: {
+          lines: [{ itemId: patacon, modifierIds: [], qty: 1 }],
+          fulfillment: 'delivery',
+          location: { lat: 11.0035, lng: -74.8155 },
+        },
+      });
+
+      expect(preview.json()).toMatchObject({ deliveryFee: 4321 });
     });
   });
 

@@ -44,6 +44,16 @@ viajan en memoria (`OrderEventsBus`): sirve con una sola instancia de la API.
 Con varias, se cambia por Redis pub/sub sin tocar a quien publica ni a quien
 escucha.
 
+## Configuración de la sede
+
+`GET` y `PUT /v1/tenants/:tenantId/branches/:branchId/settings` leen y guardan
+la configuración de una sede: nombre, dirección, horario (varios turnos por
+día, con cierre pasada la medianoche), ETA, formas de entrega, ubicación,
+anillos de cobertura y medios de pago. Solo dueño y gerente
+(`@StaffRoute('owner', 'manager')`), con `canWorkInBranch`. La carta lee esta
+configuración en vivo de la sucursal, así que guardar no pide republicar el
+menú.
+
 ## Multitenancy
 
 Base compartida, aislamiento por `tenantId` en cada documento y una capa de
@@ -89,13 +99,19 @@ El slug público identifica a la marca (o marca + sucursal). Se resuelve a
 
 ### Mapas y direcciones
 
-- Autocompletar con Google Places (con sesión, para controlar el costo).
-- **Pin obligatorio** + barrio + referencias: el geocodificador falla con las
-  direcciones de la costa.
-- Zonas de cobertura como polígonos GeoJSON con índice `2dsphere`.
+- Pin en un mapa OSM sin geocodificar: se arrastra el marcador y se guardan
+  latitud y longitud. El geocodificador falla con las direcciones de la costa,
+  así que se piden además barrio y referencias.
+- Zonas de cobertura como anillos por distancia (polígonos después, detrás de
+  `coverageFor`).
 
 ## Infraestructura
 
-- Contenedores (Docker o Podman) detrás de Caddy, como en Globerce.
-- Mongo: Atlas o propio, siempre replica set. Respaldos diarios.
-- Sentry y monitor de disponibilidad antes del piloto.
+- Frontend en Vercel (`adapter-vercel`, Node 22, región iad1).
+- Backend y sus servicios en AWS (región us-east-1, junto a iad1).
+- API en EC2 como contenedor Docker.
+- MongoDB en Atlas sobre AWS us-east-1 (replica set, transacciones y change
+  streams, como hoy).
+- Fotos en S3 con el driver `s3` que ya existe.
+- Pendientes: Redis (pub/sub, colas y cache) y TLS (Caddy en la misma EC2 o un
+  ALB).
