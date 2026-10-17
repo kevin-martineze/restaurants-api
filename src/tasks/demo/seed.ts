@@ -121,6 +121,7 @@ export async function seedDemoRestaurant(
     const id = await groups.create(tenantId, {
       brandId,
       name: group.name,
+      internalName: group.internalName ?? null,
       min: group.min,
       max: group.max,
       modifiers: group.modifiers.map((modifier) => ({

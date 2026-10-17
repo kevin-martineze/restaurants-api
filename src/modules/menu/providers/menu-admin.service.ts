@@ -49,6 +49,7 @@ export interface AdminMenu {
   groups: {
     id: string;
     name: string;
+    internalName: string | null;
     min: number;
     max: number;
     modifiers: { id: string; name: string; priceDelta: number; available: boolean }[];
@@ -122,6 +123,7 @@ export class MenuAdminService {
       groups: groups.map((group) => ({
         id: group._id.toString(),
         name: group.name,
+        internalName: group.internalName ?? null,
         min: group.min,
         max: group.max,
         modifiers: group.modifiers.map((modifier) => ({
@@ -461,6 +463,7 @@ export class MenuAdminService {
 
     return {
       name: dto.name.trim(),
+      internalName: dto.internalName?.trim() || null,
       min: dto.min,
       max: dto.max,
       modifiers: dto.modifiers.map((modifier) => ({

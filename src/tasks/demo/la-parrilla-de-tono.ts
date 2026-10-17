@@ -12,6 +12,8 @@ import { CategoryRole, ItemTag } from '@modules/menu/domain/snapshot';
 
 export interface DemoGroup {
   name: string;
+  /** Nombre interno para el panel, cuando el público se repite. */
+  internalName?: string;
   min: number;
   max: number;
   modifiers: { name: string; priceDelta?: number; available?: boolean }[];
@@ -74,6 +76,7 @@ export const DEMO_GROUPS: Record<string, DemoGroup> = {
   },
   adicionesHamburguesa: {
     name: 'Adiciones',
+    internalName: 'Adiciones · hamburguesas',
     min: 0,
     max: 3,
     modifiers: [
@@ -86,6 +89,7 @@ export const DEMO_GROUPS: Record<string, DemoGroup> = {
   },
   adicionesPerro: {
     name: 'Adiciones',
+    internalName: 'Adiciones · perros',
     min: 0,
     max: 3,
     modifiers: [

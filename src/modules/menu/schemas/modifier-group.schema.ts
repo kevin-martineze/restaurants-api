@@ -36,6 +36,10 @@ export class ModifierGroup {
   @Prop({ required: true, trim: true, maxlength: 80 })
   name!: string;
 
+  /** Solo para el panel: distingue grupos con el mismo nombre público. */
+  @Prop({ type: String, trim: true, maxlength: 80, default: null })
+  internalName!: string | null;
+
   @Prop({ required: true, min: 0, max: 20, default: 0 })
   min!: number;
 

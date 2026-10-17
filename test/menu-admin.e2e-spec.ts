@@ -31,6 +31,7 @@ const adminMenuSchema = z.object({
     z.object({
       id: z.string(),
       name: z.string(),
+      internalName: z.string().nullable(),
       min: z.number(),
       max: z.number(),
       usedBy: z.number(),
@@ -205,6 +206,60 @@ describe('Administración de la carta', () => {
       adiciones.modifiers.slice(0, 2).map((m) => m.id),
     );
     expect(after?.modifiers[2]?.name).toBe('Cebolla caramelizada');
+  });
+
+  it('el nombre interno distingue grupos y no sale en la carta pública', async () => {
+    const created = adminMenuSchema.parse(
+      (
+        await as('owner').post(`${menuUrl()}/groups`, {
+          name: 'Salsas de la casa',
+          internalName: 'Salsas · picadas',
+          min: 0,
+          max: 1,
+          modifiers: [{ name: 'Rosada', priceDelta: 0, available: true }],
+        })
+      ).json(),
+    );
+    const conNombre = created.groups.find((g) => g.name === 'Salsas de la casa');
+
+    expect(conNombre?.internalName).toBe('Salsas · picadas');
+
+    const sinNombre = adminMenuSchema.parse(
+      (
+        await as('owner').post(`${menuUrl()}/groups`, {
+          name: 'Aderezos',
+          min: 0,
+          max: 1,
+          modifiers: [{ name: 'Vinagreta', priceDelta: 0, available: true }],
+        })
+      ).json(),
+    );
+
+    expect(sinNombre.groups.find((g) => g.name === 'Aderezos')?.internalName).toBeNull();
+
+    // Editar: un nombre interno vacío se guarda como null.
+    const vacio = adminMenuSchema.parse(
+      (
+        await as('owner').patch(`${menuUrl()}/groups/${conNombre?.id}`, {
+          name: 'Salsas de la casa',
+          internalName: '',
+          min: 0,
+          max: 1,
+          modifiers: [
+            { id: conNombre?.modifiers[0]?.id, name: 'Rosada', priceDelta: 0, available: true },
+          ],
+        })
+      ).json(),
+    );
+
+    expect(vacio.groups.find((g) => g.id === conNombre?.id)?.internalName).toBeNull();
+
+    // El snapshot que ve el cliente no conoce el nombre interno.
+    const publico = (
+      await app.inject({ method: 'GET', url: '/v1/public/la-parrilla-de-tono/menu' })
+    ).json();
+
+    expect(JSON.stringify(publico)).not.toContain('internalName');
   });
 
   it('la cocina agota un producto de un toque y la carta lo muestra', async () => {

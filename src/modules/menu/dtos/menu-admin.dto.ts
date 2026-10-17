@@ -143,6 +143,12 @@ export class GroupDto {
   @Length(1, 80)
   name!: string;
 
+  @ApiPropertyOptional({ example: 'Adiciones · hamburguesas' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  internalName?: string;
+
   @ApiProperty({ example: 0 })
   @IsInt()
   @Min(0)
